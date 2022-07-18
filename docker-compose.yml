@@ -1,0 +1,17 @@
+# Docker schema version definition
+# Check the compatibility matrix with the current schema version in the File Creation Reference.
+# https://docs.docker.com/compose/compose-file/
+version: "3.8"
+
+# Services or Containers List definition
+services:
+  db:
+    container_name: board_database
+    build:
+      context: ./db
+    ports:
+      - 3306:3306
+    volumes:
+      - ./db/data:/var/lib/mysql
+      - ./db/initdb.d:/docker-entrypoint-initdb.d
+    env_file: .env
