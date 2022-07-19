@@ -9,6 +9,7 @@ services:
     container_name: board_database
     build:
       context: ./db
+      dockerfile: Dockerfile
     ports:
       - 3306:3306
     volumes:
