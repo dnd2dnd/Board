@@ -46,4 +46,8 @@ public class User extends BaseTime{
             joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "user_id")},
             inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")})
     private Set<Authority> authorities;
+
+    public User(UUID userId) {
+        this.userId = userId;
+    }
 }
