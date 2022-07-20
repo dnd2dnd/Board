@@ -1,20 +1,23 @@
 package com.dnd.board.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.util.Set;
 import java.util.UUID;
 
 @Getter
-@RequiredArgsConstructor
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Builder
-@Table(name="memeber")
+@Table(name="user")
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class User extends BaseTime{
 
     @JsonIgnore
