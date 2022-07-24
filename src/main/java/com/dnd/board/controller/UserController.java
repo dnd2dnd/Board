@@ -2,7 +2,9 @@ package com.dnd.board.controller;
 
 import com.dnd.board.entity.User;
 import com.dnd.board.http.request.UserRequest;
+import com.dnd.board.http.response.GeneralResponse;
 import com.dnd.board.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +24,8 @@ public class UserController {
     }
 
     @GetMapping("/hello")
-    public ResponseEntity<String> hello() {
-        return ResponseEntity.ok("hello");
+    public String hello() {
+        return "hello";
     }
 
     @PostMapping("/test-redirect")
@@ -32,10 +34,9 @@ public class UserController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<User> signup(
-            @Valid @RequestBody UserRequest userDto
-    ) {
-        return ResponseEntity.ok(userService.signup(userDto));
+    public ResponseEntity<GeneralResponse> signup(@Valid @RequestBody UserRequest userDto) {
+        userService.signup(userDto);
+        return new ResponseEntity<>(GeneralResponse.of(HttpStatus.OK, "사용자 등록에 성공하였습니다."), HttpStatus.OK);
     }
 
     @GetMapping("/user")

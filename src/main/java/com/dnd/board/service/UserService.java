@@ -27,11 +27,13 @@ public class UserService {
     }
 
     @Transactional
-    public User signup(UserRequest userDto) {
+    public void signup(UserRequest userDto) {
         if (userRepository.findOneWithAuthoritiesByUsername(userDto.getUsername()).orElse(null) != null) {
             throw new RuntimeException("이미 가입되어 있는 유저입니다.");
         }
-
+        if (checkUserRequest(userDto)){
+            throw new IllegalArgumentException("잘못된 접근입니다. email, password, username을 확인해주세요.");
+        }
         //빌더 패턴의 장점
         Authority authority = Authority.builder()
                 .authorityName("ROLE_USER")
@@ -45,7 +47,11 @@ public class UserService {
                 .activated(true)
                 .build();
 
-        return userRepository.save(user);
+        userRepository.save(user);
+    }
+
+    public boolean checkUserRequest(UserRequest userRequest){
+        return userRequest.getUsername() == null || userRequest.getPassword() == null || userRequest.getNickname() == null;
     }
 
     @Transactional(readOnly = true)
