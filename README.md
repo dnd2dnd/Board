@@ -47,4 +47,5 @@ Spring boot를 이용하여 기본적인 웹 게시판을 만드는 프로젝트
 
 
 ## API 설계
-Swagger-ui 작성 예정
+![image](https://user-images.githubusercontent.com/68494227/180915538-548ac73c-779f-43fb-9ab4-154989cd74c0.png)
+
