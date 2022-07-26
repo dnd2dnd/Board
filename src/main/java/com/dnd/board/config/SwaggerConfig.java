@@ -10,17 +10,25 @@ import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @Configuration
 public class SwaggerConfig implements WebMvcConfigurer {
 
     @Bean
-    public Docket restAPI(){
-        return new Docket(DocumentationType.SWAGGER_2)
-                .apiInfo(apiInfo())
-                .select()
+    public Docket swaggerApi() {
+        return new Docket(DocumentationType.OAS_30)
+                .consumes(getConsumeContentTypes())
+                .produces(getProduceContentTypes())
+                .apiInfo(apiInfo()).select()
                 .apis(RequestHandlerSelectors.basePackage("com.dnd.board"))
                 .paths(PathSelectors.any())
-                .build();
+                .build()
+                .useDefaultResponseMessages(false);
     }
 
     private ApiInfo apiInfo() {
@@ -29,5 +37,18 @@ public class SwaggerConfig implements WebMvcConfigurer {
                 .version("1.0.0")
                 .description("board swagger api 입니다.")
                 .build();
+    }
+
+    private Set<String> getConsumeContentTypes() {
+        Set<String> consumes = new HashSet<>();
+        consumes.add("application/json;charset=UTF-8");
+        consumes.add("application/x-www-form-urlencoded");
+        return consumes;
+    }
+
+    private Set<String> getProduceContentTypes() {
+        Set<String> produces = new HashSet<>();
+        produces.add("application/json;charset=UTF-8");
+        return produces;
     }
 }
