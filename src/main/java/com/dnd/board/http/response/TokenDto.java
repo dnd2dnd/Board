@@ -1,4 +1,4 @@
-package com.dnd.board.controller;
+package com.dnd.board.http.response;
 
 import lombok.*;
 

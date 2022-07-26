@@ -23,16 +23,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/hello")
-    public String hello() {
-        return "hello";
-    }
-
-    @PostMapping("/test-redirect")
-    public void testRedirect(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/api/user");
-    }
-
     @PostMapping("/signup")
     public ResponseEntity<GeneralResponse> signup(@Valid @RequestBody UserRequest userDto) {
         userService.signup(userDto);

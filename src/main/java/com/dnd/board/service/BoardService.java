@@ -2,6 +2,7 @@ package com.dnd.board.service;
 
 import com.dnd.board.entity.Board;
 import com.dnd.board.entity.User;
+import com.dnd.board.http.request.BoardRequest;
 import com.dnd.board.http.response.BoardResponse;
 import com.dnd.board.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,8 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
 
-    public void setBoard(Board boardRequest){
+    public void setBoard(BoardRequest boardRequest){
+        System.out.println(SecurityContextHolder.getContext().getAuthentication().getName());
         Board board = Board.builder()
                 .userId(new User(UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName())))
                 .title(boardRequest.getTitle())
