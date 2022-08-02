@@ -6,11 +6,11 @@ import com.dnd.board.http.request.BoardRequest;
 import com.dnd.board.http.response.BoardResponse;
 import com.dnd.board.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -19,10 +19,11 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
 
+    private final UserService userService;
+
     public void setBoard(BoardRequest boardRequest){
-        System.out.println(SecurityContextHolder.getContext().getAuthentication().getName());
         Board board = Board.builder()
-                .userId(new User(UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName())))
+                .userId(new User(userService.getMyUserWithAuthorities().get().getUserId()))
                 .title(boardRequest.getTitle())
                 .contents(boardRequest.getContents())
                 .build();
@@ -50,4 +51,12 @@ public class BoardService {
         board.setTitle(boardRequest.getTitle());
         board.setContents(boardRequest.getContents());
     }
+
+
+    public void userCheck(Board board, Board boardRequest){
+        System.out.println(board.getUserId().getUsername());
+        System.out.println(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+
+    }
+
 }
