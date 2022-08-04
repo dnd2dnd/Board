@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -34,13 +35,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
-@WithMockUser
 class BoardControllerTest {
 
     @Autowired
@@ -100,6 +101,14 @@ class BoardControllerTest {
         userRepository.save(user);
     }
 
+    @WithMockUser(username = "test", roles = "USER", password = "test")
+    @Test
+    public void 사용자_확인() throws Exception {
+        mockMvc.perform(get("/api/user"))
+                .andDo(print());
+    }
+
+    @WithMockUser(username = "username", roles = "USER", password = "password")
     private String getAccessToken() throws Exception {
         UserRequest userRequest = new UserRequest(username, password, nickname);
         String userData = mapper.writeValueAsString(userRequest);
@@ -110,18 +119,19 @@ class BoardControllerTest {
         return result.getResponse().getHeader("Authorization");
     }
 
+    @WithMockUser(username = "username", roles = "USER", password = "password")
     @Test
     public void 게시판_생성() throws Exception {
-        User user = userRepository.findOneWithAuthoritiesByUsername(username).orElseThrow();
+//        User user = userRepository.findOneWithAuthoritiesByUsername(username).orElseThrow();
 
 //        // given
         String[] jwt = getAccessToken().split(" ");
-        System.out.println(jwt);
-        Authentication authentication = tokenProvider.getAuthentication(jwt[1]);
+//        System.out.println(jwt);
+//        Authentication authentication = tokenProvider.getAuthentication(jwt[1]);
 //        User a = userRepository.findById(UUID.fromString(authentication.getName())).orElseThrow();
 
-        System.out.println(user.getUserId());
-        System.out.println(authentication.getName());
+//        System.out.println(user.getUserId());
+//        System.out.println(authentication.getName());
 //        System.out.println(a.getUsername());
 
         BoardRequest boardRequest = BoardRequest.builder()
