@@ -1,4 +1,4 @@
-package com.dnd.board.http.response;
+package com.dnd.board.http.response.Board;
 
 import lombok.Builder;
 import lombok.Getter;
