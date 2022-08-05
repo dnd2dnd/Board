@@ -5,6 +5,7 @@ import com.dnd.board.entity.User;
 import com.dnd.board.http.request.UserRequest;
 import com.dnd.board.repository.UserRepository;
 import com.dnd.board.service.UserService;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -34,6 +35,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import springfox.documentation.spring.web.json.Json;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
@@ -97,7 +99,6 @@ class UserControllerTest {
         return mockMvc.perform(post(SIGN_UP_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(userRequest))
-                .andDo(print())
                 .andReturn();
     }
 
@@ -158,5 +159,72 @@ class UserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk()))
                 .hasCause(new IllegalArgumentException("잘못된 접근입니다. username을 확인해주세요."));
+    }
+
+    @Test
+    public void 회원가입_비밀번호_오류() throws Exception {
+        // given
+        String userData = mapper.writeValueAsString(getUserRequest(username, "가나다", nickname));
+
+        // when, then
+        assertThatThrownBy(() -> mockMvc.perform(post(SIGN_UP_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(userData))
+                .andDo(print())
+                .andExpect(status().isOk()))
+                .hasCause(new IllegalArgumentException("잘못된 접근입니다. password을 확인해주세요."));
+    }
+
+    @Test
+    public void 회원가입_닉네임_오류() throws Exception {
+        // given
+        String userData = mapper.writeValueAsString(getUserRequest(username, password, "@@"));
+
+        // when, then
+        assertThatThrownBy(() -> mockMvc.perform(post(SIGN_UP_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(userData))
+                .andDo(print())
+                .andExpect(status().isOk()))
+                .hasCause(new IllegalArgumentException("잘못된 접근입니다. nickname을 확인해주세요."));
+    }
+
+    @WithMockUser(username = "dnd2dnd2", roles = "USER", password = "dnddnd123@")
+    @Test
+    public void 사용자용접근() throws Exception {
+        // given
+        String userData = mapper.writeValueAsString(getUserRequest(username, password, nickname));
+        signUp(userData);
+
+        // when, then
+        mockMvc.perform(get("/api/user"))
+                .andExpect(jsonPath("$.username").value(username))
+                .andExpect(jsonPath("$.nickname").value(nickname))
+                .andDo(print())
+                .andReturn();
+    }
+
+    @WithMockUser(username = "dnd2dnd2", roles = "ADMIN", password = "dnddnd123@")
+    @Test
+    public void 관리자용접근() throws Exception {
+        // given
+        User user = User.builder()
+                .username("admin")
+                .password(passwordEncoder.encode(password))
+                .nickname("admin")
+                .authorities(Collections.singleton(Authority.builder().authorityName("ROLE_ADMIN").build()))
+                .activated(true)
+                .build();
+        userRepository.save(user);
+        String userData = mapper.writeValueAsString(getUserRequest(username, password, nickname));
+        signUp(userData);
+
+
+        // when, then
+        mockMvc.perform(get("/api/user/"+username))
+                .andExpect(jsonPath("$.username").value(username))
+                .andExpect(jsonPath("$.nickname").value(nickname))
+                .andDo(print())
+                .andReturn();
     }
 }

@@ -33,7 +33,7 @@ public class UserService {
             throw new RuntimeException("이미 가입되어 있는 유저입니다.");
         }
         if (checkNullUserRequest(userDto)){
-            throw new IllegalArgumentException("잘못된 접근입니다. email, password, username을 확인해주세요.");
+            throw new IllegalArgumentException("잘못된 접근입니다. username, password, username을 확인해주세요.");
         }
 
         userNameCheck(userDto);
@@ -74,7 +74,7 @@ public class UserService {
 
     private void passWordCheck(UserRequest userRequest) {
         if (!Pattern.matches("^.*(?=^.{8,15}$)(?=.*\\d)(?=.*[a-zA-Z])(?=.*[!@#$%^&+=]).*$", userRequest.getPassword())) {
-            throw new IllegalArgumentException("잘못된 접근입니다. password 확인해주세요.");
+            throw new IllegalArgumentException("잘못된 접근입니다. password을 확인해주세요.");
         }
     }
 
