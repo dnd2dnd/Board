@@ -24,6 +24,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -43,7 +44,8 @@ import java.util.Optional;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -71,9 +73,9 @@ class UserControllerTest {
 
     private static String SIGN_UP_URL = "/api/signup";
 
-    private static String username = "d2d";
-    private static String password = "d2d";
-    private static String nickname = "웅둘웅둘";
+    private static String username = "dnd2dnd2";
+    private static String password = "dnddnd123@";
+    private static String nickname = "웅이";
 
     @Autowired
     private WebApplicationContext ctx;
@@ -86,17 +88,17 @@ class UserControllerTest {
                 .build();
     }
 
+    @AfterEach //  Test가 하나 끝날때 마다 repository를 비워줌
+    public void afterEach() {
+        userRepository.deleteAll();
+    }
+
     private MvcResult signUp(String userRequest) throws Exception {
         return mockMvc.perform(post(SIGN_UP_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(userRequest))
-                .andExpect(status().isOk())
+                .andDo(print())
                 .andReturn();
-    }
-
-    @AfterEach //  Test가 하나 끝날때 마다 repository를 비워줌
-    public void afterEach() {
-        userRepository.deleteAll();
     }
 
     private UserRequest getUserRequest(String username, String password, String nickname){
@@ -110,35 +112,51 @@ class UserControllerTest {
 
     @Test
     public void 회원가입_성공() throws Exception {
-        UserRequest userRequest = getUserRequest(username+"1", password, nickname);
+        // given
+        UserRequest userRequest = getUserRequest(username, password, nickname);
         String userData = mapper.writeValueAsString(userRequest);
 
+        // when
         MvcResult result = signUp(userData);
 
+        // then
         String response = result.getResponse().getContentAsString();
         assertThat("사용자 등록에 성공하였습니다.").isEqualTo(JsonPath.parse(response).read("$.message"));
     }
 
     @Test
     public void 회원가입_중복() throws Exception {
-        Authority authority = Authority.builder()
-                .authorityName("ROLE_USER")
-                .build();
-
+        // given
         User user = User.builder()
                 .username(username)
                 .password(passwordEncoder.encode(password))
                 .nickname(nickname)
-                .authorities(Collections.singleton(authority))
+                .authorities(Collections.singleton(Authority.builder().authorityName("ROLE_USER").build()))
                 .activated(true)
                 .build();
-
         userRepository.save(user);
+        String userData = mapper.writeValueAsString(getUserRequest(username, password, nickname));
 
-        UserRequest userRequest = getUserRequest(username, password, nickname);
-
-        Assertions.assertThrows(RuntimeException.class, () -> {userService.signup(userRequest);});
-
+        // when, then
+        assertThatThrownBy(() -> mockMvc.perform(post(SIGN_UP_URL)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(userData))
+                .andDo(print())
+                .andExpect(status().isOk()))
+                .hasCause(new RuntimeException("이미 가입되어 있는 유저입니다."));
     }
 
+    @Test
+    public void 회원가입_아이디_오류() throws Exception {
+        // given
+        String userData = mapper.writeValueAsString(getUserRequest("가나다", password, nickname));
+
+        // when, then
+        assertThatThrownBy(() -> mockMvc.perform(post(SIGN_UP_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(userData))
+                .andDo(print())
+                .andExpect(status().isOk()))
+                .hasCause(new IllegalArgumentException("잘못된 접근입니다. username을 확인해주세요."));
+    }
 }
