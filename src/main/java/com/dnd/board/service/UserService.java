@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 public class UserService {
@@ -31,9 +32,14 @@ public class UserService {
         if (userRepository.findOneWithAuthoritiesByUsername(userDto.getUsername()).orElse(null) != null) {
             throw new RuntimeException("이미 가입되어 있는 유저입니다.");
         }
-        if (checkUserRequest(userDto)){
-            throw new IllegalArgumentException("잘못된 접근입니다. email, password, username을 확인해주세요.");
+        if (checkNullUserRequest(userDto)){
+            throw new IllegalArgumentException("잘못된 접근입니다. username, password, username을 확인해주세요.");
         }
+
+        userNameCheck(userDto);
+        nickNameCheck(userDto);
+        passWordCheck(userDto);
+
         //빌더 패턴의 장점
         Authority authority = Authority.builder()
                 .authorityName("ROLE_USER")
@@ -50,8 +56,26 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public boolean checkUserRequest(UserRequest userRequest){
+    private boolean checkNullUserRequest(UserRequest userRequest){
         return userRequest.getUsername() == null || userRequest.getPassword() == null || userRequest.getNickname() == null;
+    }
+
+    private void userNameCheck(UserRequest userRequest) {
+        if (!Pattern.matches("^[A-Za-z0-9]{4,12}$", userRequest.getUsername())) {
+            throw new IllegalArgumentException("잘못된 접근입니다. username을 확인해주세요.");
+        }
+    }
+
+    private void nickNameCheck(UserRequest userRequest) {
+        if (!Pattern.matches("^[A-Za-z0-9가-힣]{2,10}$", userRequest.getNickname())) {
+            throw new IllegalArgumentException("잘못된 접근입니다. nickname을 확인해주세요.");
+        }
+    }
+
+    private void passWordCheck(UserRequest userRequest) {
+        if (!Pattern.matches("^.*(?=^.{8,15}$)(?=.*\\d)(?=.*[a-zA-Z])(?=.*[!@#$%^&+=]).*$", userRequest.getPassword())) {
+            throw new IllegalArgumentException("잘못된 접근입니다. password을 확인해주세요.");
+        }
     }
 
     @Transactional(readOnly = true)
