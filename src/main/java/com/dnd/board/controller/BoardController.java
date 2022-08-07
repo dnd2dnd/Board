@@ -56,7 +56,6 @@ public class BoardController {
     public ResponseEntity<BoardPageResponse> getBoards(@PageableDefault Pageable pageable,
                                                        @RequestParam(name="searchOption", required = false, defaultValue = "title") SearchOption option,
                                                        @RequestParam(name="keyword", required = false) String keyword){
-        Page<Board> boards;
         String searchOption=option.getValue();
         List<BoardListResponse> boardListResponseList = new ArrayList<>();
         BoardPageResponse boardPageResponse;
