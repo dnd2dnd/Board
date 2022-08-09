@@ -24,20 +24,27 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 import javax.transaction.Transactional;
 
+import java.awt.print.Pageable;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Transactional
 @SpringBootTest
@@ -101,12 +108,6 @@ class BoardControllerTest {
         userRepository.save(user);
     }
 
-    @WithMockUser(username = "test", roles = "USER", password = "test")
-    @Test
-    public void 사용자_확인() throws Exception {
-        mockMvc.perform(get("/api/user"))
-                .andDo(print());
-    }
 
     @WithMockUser(username = "username", roles = "USER", password = "password")
     private String getAccessToken() throws Exception {
@@ -122,29 +123,57 @@ class BoardControllerTest {
     @WithMockUser(username = "username", roles = "USER", password = "password")
     @Test
     public void 게시판_생성() throws Exception {
-//        User user = userRepository.findOneWithAuthoritiesByUsername(username).orElseThrow();
-
-//        // given
-        String[] jwt = getAccessToken().split(" ");
-//        System.out.println(jwt);
-//        Authentication authentication = tokenProvider.getAuthentication(jwt[1]);
-//        User a = userRepository.findById(UUID.fromString(authentication.getName())).orElseThrow();
-
-//        System.out.println(user.getUserId());
-//        System.out.println(authentication.getName());
-//        System.out.println(a.getUsername());
-
+        // given
         BoardRequest boardRequest = BoardRequest.builder()
                 .title(title)
                 .contents(contents)
                 .build();
 
-        MvcResult result = mockMvc.perform(post(Board_URL)
-                        .header("Authorization", jwt)
+        // when, then
+        mockMvc.perform(post(Board_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(boardRequest)))
                 .andDo(print())
                 .andReturn();
-        System.out.println(result.getResponse().getContentAsString());
     }
+
+    @WithMockUser(username = "username", roles = "USER", password = "password")
+    @Test
+    public void 게시판_검색() throws Exception {
+        // given
+        // 많은 데이터라 db에 저장된 것 사용
+        MultiValueMap<String, String> requestParam = new LinkedMultiValueMap<>();
+        requestParam.add("page", String.valueOf(0));
+        requestParam.add("size", String.valueOf(10));
+        requestParam.add("searchOption", "title");
+        requestParam.add("keyword", "abc");
+
+        // when
+        ResultActions resultActions = mockMvc.perform(get(Board_URL)
+                        .params(requestParam));
+
+        // then
+        resultActions
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    public void 게시판_상세검색() throws Exception {
+        //given
+        // 저장되어있는 데이터 UUID : 09e7bfd8-71ab-4eaa-b7ca-d7151f1552f3 사용
+        String uuid = "09e7bfd8-71ab-4eaa-b7ca-d7151f1552f3";
+
+        // when
+        ResultActions resultActions = mockMvc.perform(get(Board_URL+"/{board_id}", uuid));
+        Board board = boardRepository.findById(UUID.fromString(uuid)).orElseThrow(IllegalArgumentException::new);
+
+        // then
+        resultActions
+                .andExpect(MockMvcResultMatchers.jsonPath("title").value(board.getTitle()))
+                .andExpect(MockMvcResultMatchers.jsonPath("contents").value(board.getContents()))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
 }

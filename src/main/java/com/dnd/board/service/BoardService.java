@@ -59,12 +59,6 @@ public class BoardService {
         board.setContents(boardRequest.getContents());
     }
 
-    public void userCheck(Board board, Board boardRequest){
-        System.out.println(board.getUserId().getUsername());
-        System.out.println(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-
-    }
-
     public BoardPageResponse getAllBoardList(Pageable pageable, List<BoardListResponse> boardListResponseList, SearchOption searchOption) {
         Page<Board> boardPage = boardRepository.findAll(pageable);
         addBoardListResponse(boardPage, boardListResponseList);
@@ -106,7 +100,6 @@ public class BoardService {
             for(int i=0; i<boards.getSize();i++){
                 if(contentSize>=boards.getTotalElements())
                     break;
-                System.out.println(contentSize +" " + boards.getSize() +" " + boards.getNumber());
                 BoardListResponse boardListResponse = BoardListResponse.builder()
                         .idx(boards.getContent().get(i).getIdx())
                         .title(boards.getContent().get(i).getTitle())
