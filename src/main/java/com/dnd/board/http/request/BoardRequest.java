@@ -10,9 +10,7 @@ import javax.persistence.Column;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BoardRequest {
-    @Column
     private String title;
-
-    @Column
     private String contents;
+    private String writer;
 }

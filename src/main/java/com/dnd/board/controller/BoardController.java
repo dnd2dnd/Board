@@ -23,6 +23,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -92,13 +93,16 @@ public class BoardController {
         }
     }
 
-    @PreAuthorize("isAuthenticated() and ((#writer == principal.username) or hasRole('ROLE_ADMIN'))")
+    @PreAuthorize("isAuthenticated() and ((#boardRequest.writer == principal.username) or hasRole('ROLE_ADMIN'))")
     @PatchMapping("/update/{board_id}") // 게시판 수정
-    public ResponseEntity<GeneralResponse> boardUpdate(@PathVariable(name="board_id") UUID uuid,
-                                                       @RequestPart(name = "boardRequest") Board boardRequest, @RequestPart(name = "writer") String writer ){
+    public ResponseEntity<GeneralResponse> boardUpdate(@PathVariable(name="board_id") UUID uuid, @RequestBody BoardRequest boardRequest ){
         try{
+            System.out.println(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+            System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+            System.out.println(SecurityContextHolder.getContext().getAuthentication().getCredentials());
+            System.out.println(SecurityContextHolder.getContext().getAuthentication().getDetails());
             boardService.updateBoard(uuid, boardRequest);
-            return new ResponseEntity<>(GeneralResponse.of(HttpStatus.OK, "게시글이 수정되었습니다"), HttpStatus.OK);
+            return new ResponseEntity<>(GeneralResponse.of(HttpStatus.OK, "게시글이 수정되었습니다."), HttpStatus.OK);
         } catch (NullPointerException e) {
             return new ResponseEntity<>(GeneralResponse.of(HttpStatus.NOT_FOUND,"수정할 게시글이 없습니다."), HttpStatus.NOT_FOUND);
         }
