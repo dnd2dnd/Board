@@ -18,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,8 +42,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -84,7 +84,7 @@ class BoardControllerTest {
     private static String nickname = "nickname";
     private static String title = "title";
     private static String contents = "contents";
-
+    private static String uuidEx = "09e7bfd8-71ab-4eaa-b7ca-d7151f1552f3";
 
     @BeforeEach
     void setup() throws Exception {
@@ -161,12 +161,11 @@ class BoardControllerTest {
     @Test
     public void 게시판_상세검색() throws Exception {
         //given
-        // 저장되어있는 데이터 UUID : 09e7bfd8-71ab-4eaa-b7ca-d7151f1552f3 사용
-        String uuid = "09e7bfd8-71ab-4eaa-b7ca-d7151f1552f3";
+        // 저장되어있는 데이터 uuidEx 사용
 
         // when
-        ResultActions resultActions = mockMvc.perform(get(Board_URL+"/{board_id}", uuid));
-        Board board = boardRepository.findById(UUID.fromString(uuid)).orElseThrow(IllegalArgumentException::new);
+        ResultActions resultActions = mockMvc.perform(get(Board_URL+"/{board_id}", uuidEx));
+        Board board = boardRepository.findById(UUID.fromString(uuidEx)).orElseThrow(IllegalArgumentException::new);
 
         // then
         resultActions
@@ -176,4 +175,43 @@ class BoardControllerTest {
                 .andDo(print());
     }
 
+    @Test
+    public void 게시판_삭제() throws Exception {
+        //given
+        // 저장되어있는 데이터 uuidEx 사용
+
+        // when
+        ResultActions resultActions = mockMvc.perform(delete(Board_URL+"/{board_id}", uuidEx));
+
+        // then
+        resultActions
+                .andExpect(MockMvcResultMatchers.jsonPath("message").value("게시글이 삭제되었습니다."))
+                .andExpect(status().isOk())
+                .andDo(print());
+
+    }
+
+    @WithMockUser(username = "username", roles = "USER", password = "password")
+    @Test
+    public void 게시판_수정() throws Exception {
+        // given
+        // 저장되어있는 데이터 uuidEx 사용
+        BoardRequest boardRequest = BoardRequest.builder()
+                .title(title+"2")
+                .contents(contents)
+                .writer(username)
+                .build();
+        String changeBoard = mapper.writeValueAsString(boardRequest);
+
+        // when
+        ResultActions resultActions = mockMvc.perform(patch(Board_URL+"/update/{board_id}", uuidEx)
+                                                        .contentType(MediaType.APPLICATION_JSON)
+                                                        .content(changeBoard));
+
+        // then
+        resultActions
+                .andExpect(MockMvcResultMatchers.jsonPath("message").value("게시글이 수정되었습니다."))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
 }

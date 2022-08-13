@@ -53,7 +53,7 @@ public class BoardService {
     }
 
     @Transactional
-    public void updateBoard(UUID uuid, Board boardRequest){
+    public void updateBoard(UUID uuid, BoardRequest boardRequest){
         Board board = boardRepository.findById(uuid).orElseThrow(IllegalArgumentException::new);
         board.setTitle(boardRequest.getTitle());
         board.setContents(boardRequest.getContents());
