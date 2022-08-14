@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -28,16 +29,16 @@ public class BoardService {
 
     private final UserService userService;
 
-    public void setBoard(BoardRequest boardRequest){
+    public Board setBoard(BoardRequest boardRequest){
         Board board = Board.builder()
                 .userId(new User(userService.getMyUserWithAuthorities().get().getUserId()))
                 .title(boardRequest.getTitle())
                 .contents(boardRequest.getContents())
                 .build();
-        boardRepository.save(board);
+        return boardRepository.save(board);
     }
 
-    public BoardResponse getBoard(UUID uuid){
+    public BoardResponse getBoardResponse(UUID uuid){
         Board board = boardRepository.findById(uuid).orElseThrow(IllegalArgumentException::new);
         BoardResponse boardResponse = BoardResponse.builder()
                 .nickname(board.getUserId().getNickname())

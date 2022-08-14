@@ -199,7 +199,6 @@ class BoardControllerTest {
         BoardRequest boardRequest = BoardRequest.builder()
                 .title(title+"2")
                 .contents(contents)
-                .writer(username)
                 .build();
         String changeBoard = mapper.writeValueAsString(boardRequest);
 
