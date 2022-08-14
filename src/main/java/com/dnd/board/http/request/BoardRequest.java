@@ -12,5 +12,4 @@ import javax.persistence.Column;
 public class BoardRequest {
     private String title;
     private String contents;
-    private String writer;
 }

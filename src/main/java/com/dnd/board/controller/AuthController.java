@@ -2,6 +2,7 @@ package com.dnd.board.controller;
 
 import com.dnd.board.config.JwtFilter;
 import com.dnd.board.config.TokenProvider;
+import com.dnd.board.entity.User;
 import com.dnd.board.http.request.UserRequest;
 import com.dnd.board.http.response.TokenDto;
 import com.dnd.board.service.UserService;

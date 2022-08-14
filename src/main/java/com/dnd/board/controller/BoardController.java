@@ -40,7 +40,7 @@ public class BoardController {
 
     @GetMapping("/{board_id}")
     public ResponseEntity<BoardResponse> getBoard(@PathVariable(name="board_id") UUID uuid){
-        return new ResponseEntity<>(boardService.getBoard(uuid), HttpStatus.OK);
+        return new ResponseEntity<>(boardService.getBoardResponse(uuid), HttpStatus.OK);
     }
 
     @Operation(tags = "Board", summary = "제목, 제목+내용으로 글을 찾습니다.",
@@ -93,14 +93,9 @@ public class BoardController {
         }
     }
 
-    @PreAuthorize("isAuthenticated() and ((#boardRequest.writer == principal.username) or hasRole('ROLE_ADMIN'))")
     @PatchMapping("/update/{board_id}") // 게시판 수정
     public ResponseEntity<GeneralResponse> boardUpdate(@PathVariable(name="board_id") UUID uuid, @RequestBody BoardRequest boardRequest ){
         try{
-            System.out.println(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-            System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
-            System.out.println(SecurityContextHolder.getContext().getAuthentication().getCredentials());
-            System.out.println(SecurityContextHolder.getContext().getAuthentication().getDetails());
             boardService.updateBoard(uuid, boardRequest);
             return new ResponseEntity<>(GeneralResponse.of(HttpStatus.OK, "게시글이 수정되었습니다."), HttpStatus.OK);
         } catch (NullPointerException e) {
